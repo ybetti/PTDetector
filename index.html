@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PTDetector</title>
+  <title>PThelpernow</title>
   <style>
     #canvas {
       border: 1px solid black;
@@ -23,14 +23,28 @@
       }
     };
 
+    // バイブレーションを開始する関数
+    function startVibration() {
+      if ("vibrate" in navigator) {
+        navigator.vibrate(100); // 100msの振動
+      }
+    }
+
+    // バイブレーションを停止する関数
+    function stopVibration() {
+      if ("vibrate" in navigator) {
+        navigator.vibrate(0); // 振動を停止
+      }
+    }
+
     // ビデオストリームを取得
     navigator.mediaDevices.getUserMedia(constraints)
-      .then(function(stream) {
+      .then(function (stream) {
         const video = document.createElement('video');
         video.srcObject = stream;
         video.play();
 
-        video.addEventListener('play', function() {
+        video.addEventListener('play', function () {
           function calculateDistance(point1, point2) {
             return Math.sqrt(Math.pow(point2.x - point1.x, 2) + Math.pow(point2.y - point1.y, 2));
           }
@@ -47,15 +61,15 @@
               const green = frame.data[i + 1];
               const blue = frame.data[i + 2];
 
-              // 赤色成分が顕著な場合
+              // 黒に近い赤色も含む条件
               if (
-                red > 50 &&                // 赤色の閾値を下げる
-                red > green * 1.5 &&       // 赤色が緑より1.5倍強い
-                red > blue * 1.5 &&        // 赤色が青より1.5倍強い
-                green < 70 &&              // 緑色が低いことを確認
-                blue < 70 &&               // 青色が低いことを確認
-                (red - green > 30) &&      // 赤色が緑より十分高い
-                (red - blue > 30)          // 赤色が青より十分高い
+                red > 50 &&
+                red > green * 1.5 &&
+                red > blue * 1.5 &&
+                green < 70 &&
+                blue < 70 &&
+                (red - green > 30) &&
+                (red - blue > 30)
               ) {
                 const x = (i / 4) % canvas.width;
                 const y = Math.floor((i / 4) / canvas.width);
@@ -77,10 +91,17 @@
                 context.beginPath();
                 context.arc(pixel.x, pixel.y, 8, 0, 2 * Math.PI, false);
                 context.lineWidth = 3;
-                context.strokeStyle = 'green';
+                context.strokeStyle = 'lightgreen';
                 context.stroke();
               }
             });
+
+            // バイブレーションの制御
+            if (markers.length > 0) {
+              startVibration(); // マーカーがある場合、バイブレーションを開始
+            } else {
+              stopVibration(); // マーカーがない場合、バイブレーションを停止
+            }
 
             // 次のフレームの描画をリクエスト
             requestAnimationFrame(draw);
@@ -89,7 +110,7 @@
           draw();
         });
       })
-      .catch(function(err) {
+      .catch(function (err) {
         console.log("An error occurred: " + err);
       });
   </script>
