@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PThelpernow</title>
+  <style>
+    #canvas {
+      border: 1px solid black;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="canvas" width="640" height="480"></canvas>
+  <script>
+    const canvas = document.getElementById('canvas');
+    const context = canvas.getContext('2d');
+
+    // リアカメラを使用するための制約を設定
+    const constraints = {
+      video: {
+        facingMode: { exact: "environment" }
+      }
+    };
+
+    // ビデオストリームを取得
+    navigator.mediaDevices.getUserMedia(constraints)
+      .then(function(stream) {
+        const video = document.createElement('video');
+        video.srcObject = stream;
+        video.play();
+
+        video.addEventListener('play', function() {
+          function calculateDistance(point1, point2) {
+            return Math.sqrt(Math.pow(point2.x - point1.x, 2) + Math.pow(point2.y - point1.y, 2));
+          }
+
+          function draw() {
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const frame = context.getImageData(0, 0, canvas.width, canvas.height);
+            const length = frame.data.length;
+
+            const redPixels = [];
+
+            for (let i = 0; i < length; i += 4) {
+              const red = frame.data[i];
+              const green = frame.data[i + 1];
+              const blue = frame.data[i + 2];
+
+              // 赤色成分が顕著な場合
+              if (red > 100 && red > green * 1.5 && red > blue * 1.5 && green < 50 && blue < 50) {
+                const x = (i / 4) % canvas.width;
+                const y = Math.floor((i / 4) / canvas.width);
+                redPixels.push({ x, y, red });
+              }
+            }
+
+            // 上位5つの赤い領域にマーカーを描画
+            const markers = [];
+            redPixels.forEach(pixel => {
+              let canDrawMarker = true;
+              markers.forEach(marker => {
+                if (calculateDistance(pixel, marker) < 25) {
+                  canDrawMarker = false;
+                }
+              });
+              if (canDrawMarker) {
+                markers.push(pixel);
+                context.beginPath();
+                context.arc(pixel.x, pixel.y, 8, 0, 2 * Math.PI, false);
+                context.lineWidth = 3;
+                context.strokeStyle = 'lightgreen';
+                context.stroke();
+              }
+            });
+
+            // 次のフレームの描画をリクエスト
+            requestAnimationFrame(draw);
+          }
+
+          draw();
+        });
+      })
+      .catch(function(err) {
+        console.log("An error occurred: " + err);
+      });
+  </script>
+</body>
+</html>
