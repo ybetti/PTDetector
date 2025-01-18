@@ -89,9 +89,9 @@
               if (canDrawMarker) {
                 markers.push(pixel);
                 context.beginPath();
-                context.arc(pixel.x, pixel.y, 8, 0, 2 * Math.PI, false);
-                context.lineWidth = 3;
-                context.strokeStyle = 'lightgreen';
+                context.arc(pixel.x, pixel.y, 15, 0, 2 * Math.PI, false);
+                context.lineWidth = 4;
+                context.strokeStyle = 'green';
                 context.stroke();
               }
             });
