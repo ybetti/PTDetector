@@ -11,7 +11,7 @@
   </style>
 </head>
 <body>
-  <canvas id="canvas" width="400" height="600"></canvas>
+  <canvas id="canvas" width="300" height="600"></canvas>
   <script>
     const canvas = document.getElementById('canvas');
     const context = canvas.getContext('2d');
@@ -48,7 +48,15 @@
               const blue = frame.data[i + 2];
 
               // 赤色成分が顕著な場合
-              if (red > 100 && red > green * 1.5 && red > blue * 1.5 && green < 50 && blue < 50) {
+              if (
+                red > 50 &&                // 赤色の閾値を下げる
+                red > green * 1.5 &&       // 赤色が緑より1.5倍強い
+                red > blue * 1.5 &&        // 赤色が青より1.5倍強い
+                green < 70 &&              // 緑色が低いことを確認
+                blue < 70 &&               // 青色が低いことを確認
+                (red - green > 30) &&      // 赤色が緑より十分高い
+                (red - blue > 30)          // 赤色が青より十分高い
+              ) {
                 const x = (i / 4) % canvas.width;
                 const y = Math.floor((i / 4) / canvas.width);
                 redPixels.push({ x, y, red });
@@ -69,7 +77,7 @@
                 context.beginPath();
                 context.arc(pixel.x, pixel.y, 8, 0, 2 * Math.PI, false);
                 context.lineWidth = 3;
-                context.strokeStyle = 'lightgreen';
+                context.strokeStyle = 'green';
                 context.stroke();
               }
             });
